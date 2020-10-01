@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/image">
+        <file>resouce/img/splash_image.png</file>
+        <file>resouce/img/user_icon.jpg</file>
+        <file>resouce/img/setting.png</file>
+    </qresource>
+</RCC>
