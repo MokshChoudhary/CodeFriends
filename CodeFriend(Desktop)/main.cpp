@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     w.show();
     //Check for auth of a user
     if(w.checkAuth()){
-       w.close();
+      // w.close();
     }
     return a.exec();
 }
