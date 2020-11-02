@@ -1,0 +1,25 @@
+<resources>
+    <!-- Static -->
+    <string name="app_name">CodeFriends</string>
+    <string name="title_activity_main">MainActivity</string>
+    <!-- Strings used for fragments for navigation -->
+
+    <string name="avatar">Avatar</string>
+    <string name="tags_text">Knowledge of</string>
+    <string name="tags">tags</string>
+    <string name="todo">TODO</string>
+    <string name="i_am_a_bug_killer">I am a bug killer</string>
+    <string name="prompt_hint_login_email">Email/Username</string>
+    <string name="prompt_hint_login_password">Password</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Login</string>
+    <string name="action_sign_up">Register</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="apple">apple</string>
+    <string name="google">google</string>
+    <string name="github">github</string>
+</resources>

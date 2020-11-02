@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "865323354144",
+    "firebase_url": "https://codefriend-2cfcb.firebaseio.com",
+    "project_id": "codefriend-2cfcb",
+    "storage_bucket": "codefriend-2cfcb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865323354144:android:10617f451bf8b142cc9445",
+        "android_client_info": {
+          "package_name": "com.futurework.codefriends"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "865323354144-3cob9klq1hqdk4jm6ihq3bc0om1k8fmg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.futurework.codefriends",
+            "certificate_hash": "d3cefb6acc9b3157f1419c22685e10f7dc3ba11a"
+          }
+        },
+        {
+          "client_id": "865323354144-t8ghoi1rom4qnb44vr5lb94327ll2qcu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCS4YowHRDp6WIPqO1rvqRPtnaPa8uNoIU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "865323354144-t8ghoi1rom4qnb44vr5lb94327ll2qcu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
