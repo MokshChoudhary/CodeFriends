@@ -13,7 +13,6 @@ import com.futurework.codefriends.R;
 
 public class InfoHolder extends AppCompatActivity {
 
-    private final ImageView popupMenu = findViewById(R.id.pop_menu);
     private final ImageView Image = findViewById(R.id.image);
     private final TextView name = findViewById(R.id.name);
     private final TextView status = findViewById(R.id.status);
@@ -25,7 +24,7 @@ public class InfoHolder extends AppCompatActivity {
     }
 
     private void popupMenu() {
-        PopupMenu p = new PopupMenu(this, popupMenu);
+        PopupMenu p = new PopupMenu(this, Image);
         p.getMenuInflater().inflate(R.menu.info_holder_menu, p .getMenu());
         p.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {

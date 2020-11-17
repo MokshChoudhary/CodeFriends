@@ -5,4 +5,5 @@
   <color name="primaryDarkColor">#000000</color>
   <color name="primaryTextColor">#ffffff</color>
   <color name="primaryTextHintColor">#B8B8B8</color>
+  <color name="error_background">#6A00E4</color>
 </resources>

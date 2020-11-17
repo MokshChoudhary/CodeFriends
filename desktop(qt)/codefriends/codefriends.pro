@@ -29,22 +29,19 @@ SOURCES += \
         database/database_helper.cpp \
         m_network.cpp \
         main.cpp \
+        main_window.cpp \
         splash_window.cpp \
         sqlite/shell.c \
         sqlite/sqlite3.c
 
 HEADERS += \
         database/database_helper.h \
+        main_window.h \
         splash_window.h \
         sqlite/sqlite3.h \
         sqlite/sqlite3ext.h
 
 FORMS += \
+        main_window.ui \
         splash_window.ui
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
-
-DISTFILES +=

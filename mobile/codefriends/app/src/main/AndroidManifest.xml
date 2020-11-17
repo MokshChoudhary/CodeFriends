@@ -9,11 +9,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".Login"></activity>
+        <activity android:name=".Login" />
         <activity
             android:name=".templates.InfoHolder"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".MainActivity" />
+        <activity
+            android:theme="@style/Theme.Design.NoActionBar"
+            android:name=".MainActivity" />
         <activity
             android:name=".SplashScreen"
             android:theme="@style/AppTheme.NoActionBar">
