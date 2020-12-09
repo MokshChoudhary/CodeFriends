@@ -8,7 +8,7 @@
     <string name="tags_text">Knowledge of</string>
     <string name="tags">tags</string>
     <string name="todo">TODO</string>
-    <string name="i_am_a_bug_killer">I am a bug killer</string>
+    <string name="test_text">I am a bug killer.</string>
     <string name="prompt_hint_login_email">Email/Username</string>
     <string name="prompt_hint_login_password">Password</string>
     <string name="prompt_email">Email</string>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:icon="@android:drawable/ic_menu_gallery"
+        android:title="Add Image"
+        android:id="@+id/add_image"
+        app:showAsAction="collapseActionView"/>
+
+    <item android:icon="@android:drawable/sym_contact_card"
+        android:title="Add Files"
+        android:id="@+id/add_file"
+        app:showAsAction="collapseActionView"/>
+
+    <item android:icon="?attr/actionModePasteDrawable"
+        android:title="Add Document"
+        android:id="@+id/add_doc"
+        app:showAsAction="collapseActionView"/>
+
+    <item android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Add Code"
+        android:id="@+id/add_code"
+        app:showAsAction="collapseActionView" />
+
+</menu>

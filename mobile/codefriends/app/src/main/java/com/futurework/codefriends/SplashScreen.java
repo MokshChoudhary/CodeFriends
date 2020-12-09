@@ -1,17 +1,14 @@
 package com.futurework.codefriends;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -54,13 +51,16 @@ public class SplashScreen extends AppCompatActivity {
                 @Override
                 public void run() {
                     startActivity(new Intent(SplashScreen.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                    SplashScreen.this.finish();
                 }
             },2000);
+
         }else {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     startActivity(new Intent(SplashScreen.this,Login.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                    SplashScreen.this.finish();
                 }
             },2000);
         }
@@ -74,6 +74,7 @@ public class SplashScreen extends AppCompatActivity {
                 @Override
                 public void run() {
                     startActivity(new Intent(SplashScreen.this,Login.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                    SplashScreen.this.finish();
                 }
             },2000);
         }else{
@@ -81,6 +82,7 @@ public class SplashScreen extends AppCompatActivity {
                 @Override
                 public void run() {
                     startActivity(new Intent(SplashScreen.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                    SplashScreen.this.finish();
                 }
             },2000);
         }

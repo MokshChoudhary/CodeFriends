@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +19,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
@@ -38,8 +40,9 @@ import com.google.firebase.auth.GoogleAuthProvider;
     private Button LoginUsingGoogle;
     private GoogleSignInOptions gso;
     private String email ,password;
-    private int RC_GOOGLE_SIGN_IN = 07;
+    private int RC_GOOGLE_SIGN_IN = 7;
     private GoogleSignInClient mGoogleSignInClient;
+    private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.8F);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
         sighup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                view.startAnimation(buttonClick);
                 email = username.getText().toString().trim();
                 password = pass.getText().toString().trim();
                 addNewUser();
@@ -66,6 +70,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
             @Override
             public void onClick(View view) {
                 // Configure Google Sign In
+                view.startAnimation(buttonClick);
                 gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestIdToken(getString(R.string.default_web_client_id))
                         .requestEmail()
@@ -79,10 +84,16 @@ import com.google.firebase.auth.GoogleAuthProvider;
         });
         login.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
+                view.startAnimation(buttonClick);
                 email = username.getText().toString().trim();
                 password = pass.getText().toString().trim();
-                login();
+                if(!email.isEmpty() && !password.isEmpty()){
+                    login();
+                }else {
+                    Toast.makeText(Login.this, "empty username or password.",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -102,15 +113,19 @@ import com.google.firebase.auth.GoogleAuthProvider;
                                     Toast.LENGTH_SHORT).show();
                             FirebaseUser user = mAuth.getCurrentUser();
                             startActivity(new Intent(Login.this,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                            finish();
+                            Login.this.finish();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(Login.this, "Wrong username or password",
                                     Toast.LENGTH_SHORT).show();
-                            login.setTextColor(Color.RED);
-                            login.setBackgroundColor(Color.rgb(106,0,228));
+                            login.setBackgroundResource(R.drawable.button_login_error);
                         }
+                    }
+                }).addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
                     }
                 });
         else
@@ -155,7 +170,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
                             FirebaseUser user = mAuth.getCurrentUser();
                             //updateUI(user);
                             startActivity(new Intent(Login.this,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                            finish();
+                            Login.this.finish();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -183,7 +198,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
                  Log.d(TAG, "firebaseAuthWithGoogle:" + account.getId());
                  firebaseAuthWithGoogle(account.getIdToken());
                  startActivity(new Intent(Login.this,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                 finish();
+                 Login.this.finish();
              } catch (ApiException e) {
                  // Google Sign In failed, update UI appropriately
                  Log.w(TAG, "Google sign in failed", e);
