@@ -6,13 +6,14 @@ import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.view.ViewCompat;
 
 import com.bumptech.glide.Glide;
+import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.futurework.codefriends.templates.UserInfoDialog;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,11 +27,11 @@ import android.widget.TextView;
 
 import com.futurework.codefriends.Adapters.InfoHolderAdapter;
 import com.futurework.codefriends.data.Info_Holder_Data;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ArrayList<Info_Holder_Data> Data;
     private InfoHolderAdapter adapter;
+    private UserDbProvider dbProvider;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -55,14 +57,15 @@ public class MainActivity extends AppCompatActivity {
         //      Implementing list view in the main screen
         Data = new ArrayList<>();
         adapter = new InfoHolderAdapter(Data, getApplicationContext());
-        ArrayList<String> a = new ArrayList<>();
-        a.add("C++");
-        a.add("Java");
-        a.add("Android");
-        a.add("Android");
-        a.add("QT");
-        Data.add(new Info_Holder_Data("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg", "Moksh Choudhary", getString(R.string.test_text).trim(), a));
-        Data.add(new Info_Holder_Data("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg", "Sanskriti Choudhary", "This is a time pass", a));
+
+        /**
+         * @TODO : Load frame from database
+         */
+
+        dbProvider = new UserDbProvider(getApplicationContext());
+
+        Data = dbProvider.getUserData();
+
         ListView.setAdapter(adapter);
         ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -71,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 ImageView imageView = view.findViewById(R.id.image);
                 ActivityOptionsCompat option = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this,imageView, ViewCompat.getTransitionName(imageView));
 
-                startActivity(new Intent(MainActivity.this,ChatActivity.class),option.toBundle());
+                startActivity(new Intent(MainActivity.this,ChatActivity.class).putExtra("name",data.getName()),option.toBundle());
             }
         });
         ListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -131,7 +134,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void fclick(View view) {
-        Snackbar.make(view, "Floating button clicked", Snackbar.LENGTH_LONG)
-                .setAction("No action", null).show();
+//        startActivity(new Intent(MainActivity.this, Contact.class));
+//        overridePendingTransition(R.anim.bottom_up,R.anim.nothing);
+        ArrayList<String> a = new ArrayList<>();
+        a.add("C++");
+        a.add("Java");
+        a.add("Android");
+        a.add("Android");
+        a.add("QT");
+        dbProvider.setUserData("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg", "Sanskriti Choudhary", "This is a time pass",a.size(), a);
     }
 }

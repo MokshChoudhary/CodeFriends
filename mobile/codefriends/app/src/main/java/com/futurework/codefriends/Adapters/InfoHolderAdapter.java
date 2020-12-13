@@ -2,7 +2,6 @@ package com.futurework.codefriends.Adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.service.autofill.Dataset;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +9,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -38,6 +38,7 @@ public class InfoHolderAdapter extends ArrayAdapter<Info_Holder_Data> implements
 
     private static class ViewHolder{
         TextView name,status,text;
+        ListView listView;
         ImageView image;
     }
 
@@ -74,7 +75,6 @@ public class InfoHolderAdapter extends ArrayAdapter<Info_Holder_Data> implements
             viewHolder.status = convertView.findViewById(R.id.status);
             viewHolder.image =  convertView.findViewById(R.id.image);
             viewHolder.text = convertView.findViewById(R.id.textView3);
-
             result=convertView;
 
             convertView.setTag(viewHolder);
