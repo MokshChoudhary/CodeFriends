@@ -10,6 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity android:name=".Contact"></activity>
+        <activity android:name=".UserForm" />
         <activity
             android:name=".ChatActivity"
             android:theme="@style/AppTheme.NoActionBar" />

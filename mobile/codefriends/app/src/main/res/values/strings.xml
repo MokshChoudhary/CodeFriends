@@ -22,4 +22,5 @@
     <string name="apple">apple</string>
     <string name="google">google</string>
     <string name="github">github</string>
+    <string name="is_user_info_flag">UserInfoFlag</string>
 </resources>

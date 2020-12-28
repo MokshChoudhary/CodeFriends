@@ -1,77 +1,106 @@
 package com.futurework.codefriends;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.view.ViewCompat;
 
 import com.bumptech.glide.Glide;
+import com.futurework.codefriends.Database.InboxDb.InboxDbProvider;
 import com.futurework.codefriends.Database.UserDb.UserDbProvider;
+import com.futurework.codefriends.data.UserInfoData;
 import com.futurework.codefriends.templates.UserInfoDialog;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.futurework.codefriends.Adapters.InfoHolderAdapter;
-import com.futurework.codefriends.data.Info_Holder_Data;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
-import java.util.Date;
+
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private ListView ListView;
     private FirebaseAuth mAuth;
-    private ArrayList<Info_Holder_Data> Data;
+    private ArrayList<UserInfoData> Data;
     private InfoHolderAdapter adapter;
-    private UserDbProvider dbProvider;
+    private InboxDbProvider dbProvider;
+    //private ImageView buttonSetting = findViewById(R.id.s);
+    private ImageView search;
 
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ListView = findViewById(R.id.List);
+
+        search = findViewById(R.id.search_button);
+        search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseAuth.getInstance().signOut();
+                Log.d(TAG, "Search option" + R.id.search_button);
+            }
+        });
+
+        /*buttonSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "Search option" + R.id.search_button);
+                startActivity(new Intent(MainActivity.this, Contact.class));
+            }
+        });*/
+
+        //Checking if the user is registered
         mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() == null) {
             Log.i(TAG, "No User found!");
-        } else Log.i(TAG, "user name : " + mAuth.getCurrentUser().getDisplayName());
+            Toast.makeText(getApplicationContext()
+                    ,"Can not able to fetch your information!",Toast.LENGTH_LONG).show();
+            startActivity(new Intent(MainActivity.this,Login.class));
+            this.finish();
+        } else {
+            long count = new UserDbProvider(this).getCount();
+            Log.d(TAG,"user database count : "+count);
+            if(count <= 0){
+                Log.d(TAG,"test");
+                startActivity(new Intent(MainActivity.this,UserForm.class));
+                this.finish();
+            }
+            Log.d(TAG, "user name : " + mAuth.getUid());
 
-        //      Implementing list view in the main screen
+        }
+
+
+        ListView = findViewById(R.id.List);
+        //Implementing list view in the main screen
         Data = new ArrayList<>();
+        dbProvider = new InboxDbProvider(this);
+
+        if(dbProvider.getUserData().size() != 0)
+            Data = dbProvider.getUserData();
+
         adapter = new InfoHolderAdapter(Data, getApplicationContext());
-
-        /**
-         * @TODO : Load frame from database
-         */
-
-        dbProvider = new UserDbProvider(getApplicationContext());
-
-        Data = dbProvider.getUserData();
-
         ListView.setAdapter(adapter);
+
         ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Info_Holder_Data data = Data.get(position);
+                UserInfoData data = Data.get(position);
                 ImageView imageView = view.findViewById(R.id.image);
+                Log.i(TAG,"Click on "+data.getName());
                 ActivityOptionsCompat option = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this,imageView, ViewCompat.getTransitionName(imageView));
 
                 startActivity(new Intent(MainActivity.this,ChatActivity.class).putExtra("name",data.getName()),option.toBundle());
@@ -80,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         ListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Info_Holder_Data data = Data.get(i);
+                UserInfoData data = Data.get(i);
                 Dialog dialogBox = new Dialog(MainActivity.this);
                 dialogBox.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialogBox.setContentView(UserInfoDialog.Init());
@@ -91,38 +120,32 @@ public class MainActivity extends AppCompatActivity {
                 status.setText(data.getStatus());
                 Glide.with(dialogBox.getContext()).load(data.getImage()).into(image);
                 dialogBox.show();
-                /*Snackbar.make(view, "long click : "+data.getName() + "\n" + data.getStatus() + " tags: " + data.getTags(), Snackbar.LENGTH_LONG)
-                        .setAction("No action", null).show();*/
                 return true;
             }
         });
 
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_screen, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(TAG, "option menu");
-        if (item.getItemId() == R.id.action_search) {
-            Log.d(TAG, "Search option" + R.id.action_search);
-            return true;
-        } else if (item.getItemId() == R.id.action_setting) {
-            Log.d(TAG, "Search option" + R.id.action_setting);
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
+        if(new InboxDbProvider(getApplicationContext()).getCount() <=0 ) {
+            ArrayList<String> a = new ArrayList<>();
+            a.add("C++");
+            a.add("Java");
+            a.add("Android");
+            a.add("QT");
+            if (-1 == new InboxDbProvider(getApplicationContext()).setUserData("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg", "Sanskriti Choudhary", "This is a time pass", a)) {
+                Toast.makeText(getApplicationContext(), "Not Inserted", Toast.LENGTH_LONG).show();
+                if (dbProvider.getUserData().size() != 0) {
+                    Data = dbProvider.getUserData();
+                    adapter = new InfoHolderAdapter(Data, getApplicationContext());
+                    ListView.setAdapter(adapter);
+                }
+            }
         }
     }
+
 
     @Override
     public void onStart() {
         super.onStart();
+
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -133,15 +156,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     public void fclick(View view) {
-//        startActivity(new Intent(MainActivity.this, Contact.class));
-//        overridePendingTransition(R.anim.bottom_up,R.anim.nothing);
-        ArrayList<String> a = new ArrayList<>();
-        a.add("C++");
-        a.add("Java");
-        a.add("Android");
-        a.add("Android");
-        a.add("QT");
-        dbProvider.setUserData("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg", "Sanskriti Choudhary", "This is a time pass",a.size(), a);
+        startActivity(new Intent(MainActivity.this, Contact.class));
+        overridePendingTransition(R.anim.bottom_up,R.anim.nothing);
     }
 }

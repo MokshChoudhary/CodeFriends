@@ -67,12 +67,15 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             case ChatData.RECEIVER_TEXT:
                 v = mInflater.inflate(R.layout.chat_massage_recive_layout, parent, false);
                 return new ViewHolder(v, R.layout.chat_massage_recive_layout);
+
             case ChatData.SENDER_IMAGE:
                 v = mInflater.inflate(R.layout.chat_image_send_layout,parent,false);
                 return new ViewHolder(v, R.layout.chat_image_send_layout);
+
             case ChatData.RECEIVER_IMAGE:
                 v = mInflater.inflate(R.layout.chat_image_receiver_layout,parent,false);
                 return new ViewHolder(v,R.layout.chat_image_receiver_layout);
+
             default:
                 return null;
 
