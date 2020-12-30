@@ -73,6 +73,7 @@
         android:id="@+id/List"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:padding="4dp"
         android:background="#EE212121"
         android:divider="@android:color/holo_red_dark"
         android:dividerHeight="2sp"

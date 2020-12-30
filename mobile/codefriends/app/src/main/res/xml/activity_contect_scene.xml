@@ -12,11 +12,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="match_parent"
-            app:layout_editor_absoluteY="299dp" />
+            android:layout_width="match_parent" />
     </ConstraintSet>
 
     <Transition
         app:constraintSetEnd="@id/end"
-        app:constraintSetStart="@+id/start" />
+        app:constraintSetStart="@+id/start"
+        app:duration="1000"
+        app:motionInterpolator="cubic(0.2,0.94,0.8,0.8)" >
+        <KeyFrameSet ></KeyFrameSet>
+    </Transition>
+    <Transition
+        app:constraintSetStart="@+id/start"
+        app:constraintSetEnd="@+id/end" />
 </MotionScene>

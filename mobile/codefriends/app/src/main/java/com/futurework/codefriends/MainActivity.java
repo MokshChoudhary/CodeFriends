@@ -152,13 +152,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "no user");
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(MainActivity.this, Login.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-            finish();
+            MainActivity.this.finish();
         }
     }
 
 
     public void fclick(View view) {
         startActivity(new Intent(MainActivity.this, Contact.class));
-        overridePendingTransition(R.anim.bottom_up,R.anim.nothing);
     }
 }
