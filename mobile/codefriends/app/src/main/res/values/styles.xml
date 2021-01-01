@@ -14,6 +14,11 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="ProgressDialog" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:background">@color/primaryColor</item>
+        <item name="android:textColor">@color/primaryTextColor</item>
+    </style>
+
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 

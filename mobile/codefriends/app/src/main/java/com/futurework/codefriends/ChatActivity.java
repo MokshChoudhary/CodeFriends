@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.transition.Fade;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -17,7 +18,9 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.futurework.codefriends.Adapters.ChatAdapter;
+import com.futurework.codefriends.Database.InboxDb.InboxDbProvider;
 import com.futurework.codefriends.data.ChatData;
+import com.futurework.codefriends.data.UserInfoData;
 
 
 import java.util.ArrayList;
@@ -42,7 +45,16 @@ public class ChatActivity extends AppCompatActivity {
         name = findViewById(R.id.chatter_name);
         image = findViewById(R.id.chatter_image);
         text = findViewById(R.id.send_input_text);
+        long i = getIntent().getLongExtra("id",-1);
         final ImageButton button = findViewById(R.id.button_send_chat_activity);
+
+        InboxDbProvider dbProvider = new InboxDbProvider(this);
+        Log.d(TAG,"Id is : "+i);
+        for(UserInfoData data : dbProvider.getUserData(i)){
+            name.setText(data.getName());
+            image.setImageBitmap(dbProvider.byteToBitmap(data.getImageByte()));
+        }
+
         button.setOnClickListener(new send_button_add_data_UI());
 
         final TextView backButton = findViewById(R.id.back_button);
@@ -70,14 +82,6 @@ public class ChatActivity extends AppCompatActivity {
 
         getWindow().setEnterTransition(fade);
         getWindow().setExitTransition(fade);
-
-
-        name.setText("Sanskriti Choudhary");
-        Glide.with(getApplicationContext())
-                .load("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg")
-                .circleCrop()
-                .fitCenter()
-                .into(image);
 
         name.setOnClickListener(new View.OnClickListener() {
             @Override

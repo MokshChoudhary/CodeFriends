@@ -16,7 +16,7 @@ public class DbHelper extends SQLiteOpenHelper {
             DbContainer.UserEntry.COLUMNS_USER_IMAGE+" BLOB,"+
             DbContainer.UserEntry.COLUMNS_USER_NAME+" TEXT NOT NULL,"+
             DbContainer.UserEntry.COLUMNS_USER_EMAIL+" TEXT NOT NULL,"+
-            DbContainer.UserEntry.COLUMNS_USER_NUMBER+" NUMBER Unique,"+
+            DbContainer.UserEntry.COLUMNS_USER_NUMBER+" TEXT Unique,"+
             DbContainer.UserEntry.COLUMNS_USER_STATUS+" INTEGER NOT NULL, "+
             DbContainer.UserEntry.COLUMNS_USER_TAG+" TEXT " +
             ");";
@@ -25,7 +25,9 @@ public class DbHelper extends SQLiteOpenHelper {
             DbContainer.BlankEntry._ID+" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
             DbContainer.BlankEntry.COLUMNS_INBOX_USER_IMAGE+" BLOB,"+
             DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME+" TEXT NOT NULL,"+
-            DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS+" INTEGER NOT NULL, "+
+            DbContainer.BlankEntry.COLUMNS_INBOX_USER_NUMBER+" TEXT UNIQUE NOT NULL,"+
+            DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS+" INTEGER NOT NULL , "+
+            DbContainer.BlankEntry.COLUMNS_INBOX_USER_WHERE+" INTEGER NOT NULL , " +
             DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG+" TEXT " +
             ");";
 

@@ -175,10 +175,10 @@ import java.util.Objects;
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         Boolean flag = sharedPref.getBoolean(getString(R.string.is_user_info_flag), false);
         if(flag){
-            startActivity(new Intent(Login.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            startActivity(new Intent(Login.this, UserForm.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
             Login.this.finish();
         }else {
-            startActivity(new Intent(Login.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            startActivity(new Intent(Login.this, UserForm.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
             Login.this.finish();
         }
     }

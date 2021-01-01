@@ -114,17 +114,23 @@ public class InfoHolderAdapter extends ArrayAdapter<UserInfoData> implements Vie
         viewHolder.name.setTextColor(Color.WHITE);
         viewHolder.status.setTextColor(Color.WHITE);
         viewHolder.text.setTextColor(Color.WHITE);
-        if(!dataModel.getImage().isEmpty())
-            Glide.with(context)
-            .asBitmap()
-            .load(dataModel.getImage())
-            .fitCenter()
-            .into(viewHolder.image).onLoadStarted(progressDrawable);
+        if(dataModel.getImage() != null)
+            if(!dataModel.getImage().isEmpty())
+                Glide.with(context)
+                .asBitmap()
+                .load(dataModel.getImage())
+                .fitCenter()
+                .into(viewHolder.image).onLoadStarted(progressDrawable);
+            else
+                Glide.with(context)
+                .load(R.drawable.ic_baseline_person_24)
+                .fitCenter()
+                .into(viewHolder.image).onLoadStarted(progressDrawable);
         else
             Glide.with(context)
-            .load(R.drawable.ic_baseline_person_24)
-            .fitCenter()
-            .into(viewHolder.image).onLoadStarted(progressDrawable);
+                    .load(R.drawable.ic_baseline_person_24)
+                    .fitCenter()
+                    .into(viewHolder.image).onLoadStarted(progressDrawable);
         // Return the completed view to render on screen
         return convertView;
     }

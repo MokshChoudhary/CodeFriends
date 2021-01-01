@@ -5,6 +5,7 @@ import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.view.ViewCompat;
 
 import com.bumptech.glide.Glide;
+import com.futurework.codefriends.Database.DbHelper;
 import com.futurework.codefriends.Database.InboxDb.InboxDbProvider;
 import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.futurework.codefriends.data.UserInfoData;
@@ -28,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -51,11 +53,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 FirebaseAuth.getInstance().signOut();
+                new DbHelper(MainActivity.this).dropTableUser();
                 Log.d(TAG, "Search option" + R.id.search_button);
             }
         });
 
-        /*buttonSetting.setOnClickListener(new View.OnClickListener() {
+      /*  buttonSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "Search option" + R.id.search_button);
@@ -65,18 +68,19 @@ public class MainActivity extends AppCompatActivity {
 
         //Checking if the user is registered
         mAuth = FirebaseAuth.getInstance();
+
         if (mAuth.getCurrentUser() == null) {
             Log.i(TAG, "No User found!");
             Toast.makeText(getApplicationContext()
-                    ,"Can not able to fetch your information!",Toast.LENGTH_LONG).show();
-            startActivity(new Intent(MainActivity.this,Login.class));
+                    , "Can not able to fetch your information!", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(MainActivity.this, Login.class));
             this.finish();
         } else {
             long count = new UserDbProvider(this).getCount();
-            Log.d(TAG,"user database count : "+count);
-            if(count <= 0){
-                Log.d(TAG,"test");
-                startActivity(new Intent(MainActivity.this,UserForm.class));
+            Log.d(TAG, "user database count : " + count);
+            if (count <= 0) {
+                Log.d(TAG, "test");
+                startActivity(new Intent(MainActivity.this, UserForm.class));
                 this.finish();
             }
             Log.d(TAG, "user name : " + mAuth.getUid());
@@ -89,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         Data = new ArrayList<>();
         dbProvider = new InboxDbProvider(this);
 
-        if(dbProvider.getUserData().size() != 0)
+        if (dbProvider.getUserData().size() != 0)
             Data = dbProvider.getUserData();
 
         adapter = new InfoHolderAdapter(Data, getApplicationContext());
@@ -100,10 +104,10 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 UserInfoData data = Data.get(position);
                 ImageView imageView = view.findViewById(R.id.image);
-                Log.i(TAG,"Click on "+data.getName());
-                ActivityOptionsCompat option = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this,imageView, ViewCompat.getTransitionName(imageView));
+                Log.i(TAG, "Click on " + data.getId());
 
-                startActivity(new Intent(MainActivity.this,ChatActivity.class).putExtra("name",data.getName()),option.toBundle());
+                ActivityOptionsCompat option = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this, imageView, Objects.requireNonNull(ViewCompat.getTransitionName(imageView)));
+                startActivity(new Intent(MainActivity.this, ChatActivity.class).putExtra("id", data.getId()), option.toBundle());
             }
         });
         ListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -123,29 +127,16 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-        if(new InboxDbProvider(getApplicationContext()).getCount() <=0 ) {
-            ArrayList<String> a = new ArrayList<>();
-            a.add("C++");
-            a.add("Java");
-            a.add("Android");
-            a.add("QT");
-            if (-1 == new InboxDbProvider(getApplicationContext()).setUserData("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg", "Sanskriti Choudhary", "This is a time pass", a)) {
-                Toast.makeText(getApplicationContext(), "Not Inserted", Toast.LENGTH_LONG).show();
-                if (dbProvider.getUserData().size() != 0) {
-                    Data = dbProvider.getUserData();
-                    adapter = new InfoHolderAdapter(Data, getApplicationContext());
-                    ListView.setAdapter(adapter);
-                }
-            }
-        }
     }
 
-
     @Override
-    public void onStart() {
-        super.onStart();
-
+    protected void onResume() {
+        super.onResume();
+        if (dbProvider.getUserData().size() != 0) {
+            Data = dbProvider.getUserData();
+            adapter = new InfoHolderAdapter(Data, getApplicationContext());
+            ListView.setAdapter(adapter);
+        }
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -155,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
             MainActivity.this.finish();
         }
     }
-
 
     public void fclick(View view) {
         startActivity(new Intent(MainActivity.this, Contact.class));

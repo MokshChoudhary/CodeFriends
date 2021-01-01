@@ -1,31 +1,25 @@
 package com.futurework.codefriends;
 
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.loader.app.LoaderManager;
-
-import android.Manifest;
-import android.content.ContentResolver;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.futurework.codefriends.Adapters.ContactAdapter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Contact extends AppCompatActivity {
     private static final String TAG = "Contact";
@@ -38,16 +32,20 @@ public class Contact extends AppCompatActivity {
         setContentView(R.layout.activity_contect);
         addTeam = findViewById(R.id.add_team);
         addContact = findViewById(R.id.add_contact);
+        final ProgressBar bar = findViewById(R.id.progressBar);
         final ListView list = findViewById(R.id.contactListView);
         name = new ArrayList<>();
         number = new ArrayList<>();
         imageUri = new ArrayList<>();
+        bar.setVisibility(ProgressBar.INVISIBLE);
 
         if (ContextCompat.checkSelfPermission(Contact.this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
             ContentResolver cr = getContentResolver();
             Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-                    null, null, null, null);
+                    null, null, null,
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME+" ASC");
             if ((cur != null ? cur.getCount() : 0) > 0) {
+                bar.setVisibility(View.VISIBLE);
                 while (cur.moveToNext()) {
                     String id = cur.getString(
                             cur.getColumnIndex(ContactsContract.Contacts._ID));
@@ -78,6 +76,7 @@ public class Contact extends AppCompatActivity {
             final ContactAdapter adapter = new ContactAdapter(Contact.this,name,number,imageUri);
 
             list.setAdapter(adapter);
+            bar.setVisibility(View.INVISIBLE);
 
             list.setOnItemClickListener(adapter);
 
@@ -110,8 +109,7 @@ public class Contact extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        super
-                .onRequestPermissionsResult(requestCode,
+        super.onRequestPermissionsResult(requestCode,
                         permissions,
                         grantResults);
 
@@ -120,7 +118,7 @@ public class Contact extends AppCompatActivity {
             // Checking whether user granted the permission or not.
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
+                this.recreate();
                 // Showing the toast message
                 Toast.makeText(Contact.this,
                         "Application use this Permission to show you the contact of your on the CodeFriends!",
@@ -130,6 +128,8 @@ public class Contact extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "This application required a Contact read permission. Without this activity have no longer useful! ", Toast.LENGTH_LONG).show();
                 Contact.this.finish();
             }
+        }else{
+            this.recreate();
         }
 
     }

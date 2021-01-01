@@ -39,112 +39,46 @@ public class InboxDbProvider {
         this.context = context;
     }
 
-    private void saveFile(Bitmap bitmap,String imageName) throws FileNotFoundException {
-        FileOutputStream directory = new FileOutputStream("CodeFriends/image/");
-        File file = new File(directory + imageName);
-        if (!file.exists()) {
-            Log.d("path", file.toString());
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                fos.flush();
-                fos.close();
-            } catch (java.io.IOException e) {
-                e.printStackTrace();
+    public long setInboxData(final Bitmap image ,final String name,String number , final int where_box, final String status ,final ArrayList<String> tag_list){
+        write = new DbHelper(context).getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME,name);
+        if(image != null){
+            byte[] img = bitmapToByteArray(image);
+            values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_IMAGE,img);
+        }
+        StringBuilder tags = new StringBuilder();
+        if(tag_list != null){
+            for(int i = 0; i < tag_list.size(); i++){
+                tags.append(tag_list.get(i)).append(";");
             }
+            values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, tags.toString());
+        }else{
+            values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, ";");
         }
+        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NUMBER, number);
+        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS,status);
+        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_WHERE,where_box);
+        return write.insert(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,values);
     }
 
-    public void setUserData(final byte[] image ,final String name ,final String status ,final int no_of_tag ,final ArrayList<String> tag_list){
+    public long setInboxData(final String name,String number , final int where_box, final String status , final ArrayList<String> tag_list){
         write = new DbHelper(context).getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME,name);
         StringBuilder tags = new StringBuilder();
-        for(int i = 0; i < no_of_tag; i++){
-            tags.append(tag_list.get(i)).append(";");
+        if(tag_list != null){
+            for(int i = 0; i < tag_list.size(); i++){
+                tags.append(tag_list.get(i)).append(";");
+            }
+            values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, tags.toString());
+        }else{
+            values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, ";");
         }
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, tags.toString());
+        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NUMBER, number);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS,status);
-
-        Bitmap map = byteToBitmap(image);
-
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_IMAGE,image);
-        write.insert(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,values);
-    }
-
-    public void setInboxData(final Bitmap image ,final String name,final String status ,final int no_of_tag ,final ArrayList<String> tag_list){
-        write = new DbHelper(context).getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME,name);
-        StringBuilder tags = new StringBuilder();
-        for(int i = 0; i < no_of_tag; i++){
-            tags.append(tag_list.get(i)).append(";");
-        }
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, tags.toString());
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS,status);
-        byte[] img = bitmapToByteArray(image);
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_IMAGE,img);
-        write.insert(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,values);
-    }
-
-    /**
-     * @see  <p> This method is not in work. </p>
-     * @param image
-     * @param name
-     * @param status
-     * @param tag_list
-     */
-    public long setUserData(final String image ,final String name ,final String status ,final ArrayList<String> tag_list){
-
-        CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-        circularProgressDrawable.setStrokeWidth(10f);
-        circularProgressDrawable.setCenterRadius(30f);
-        circularProgressDrawable.start();
-        long i = -1;
-        SimpleDateFormat time_formatter = new SimpleDateFormat("d h,m");
-        String current_time_str = time_formatter.format(System.currentTimeMillis());
-        final String text = name+" "+current_time_str+".jpg";
-        Glide.with(context)
-                .asBitmap()
-                .load(image)
-                .into(new CustomTarget<Bitmap>(){
-                    @Override
-                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                        try {
-                            saveFile(resource,text);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                            Log.e("File Excption",text+" image not able to save image!");
-                        }
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                    }
-
-                })
-                .onLoadStarted(circularProgressDrawable);
-
-        write = new DbHelper(context).getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME,name);
-        StringBuilder tags = new StringBuilder();
-        for(int f = 0; f < tag_list.size(); f++){
-            tags.append(tag_list.get(f)).append(";");
-        }
-
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, tags.toString());
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS,status);
-        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_IMAGE,text);
-
-        values.put(DbContainer.UserEntry._ID,getCount());
-
-        i = write.insert(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,values);
-
-
-        return i;
+        values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_WHERE,where_box);
+        return write.insert(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,values);
     }
 
     public byte[] bitmapToByteArray(Bitmap image){
@@ -160,6 +94,7 @@ public class InboxDbProvider {
     }
 
     public Bitmap byteToBitmap(byte[] image){
+        if(image == null) return null;
         return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
@@ -168,9 +103,47 @@ public class InboxDbProvider {
             ArrayList<UserInfoData> list = new ArrayList<>();
             UserInfoData info = new UserInfoData();
             while(cursor.moveToNext()){
+                info.setId(cursor.getLong(cursor.getColumnIndex(DbContainer.BlankEntry._ID)));
                 info.setImage(cursor.getString(cursor.getColumnIndex("image")));
                 info.setName(cursor.getString(cursor.getColumnIndex("name")));
                 info.setStatus(cursor.getString(cursor.getColumnIndex("status")));
+                String tags = cursor.getString(cursor.getColumnIndex("tag"));
+                String[] tag_list = tags.split(";");
+                info.setTags(tag_list);
+                list.add(info);
+            }
+            return list;
+        }
+    }
+
+    public ArrayList<UserInfoData> getUserData(long id){
+        Log.d(TAG,"Id is : "+id);
+        try(Cursor cursor = read.query(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,DbContainer.BlankEntry._ID+" =? ", new String[]{String.valueOf(id)},null,null,null) ){
+            ArrayList<UserInfoData> list = new ArrayList<>();
+            UserInfoData info = new UserInfoData();
+            while(cursor.moveToNext()){
+                info.setImageByte(cursor.getBlob(cursor.getColumnIndex("image")));
+                info.setName(cursor.getString(cursor.getColumnIndex("name")));
+                info.setNumber(cursor.getString(cursor.getColumnIndex("number")));
+                info.setStatus(cursor.getString(cursor.getColumnIndex("status")));
+                String tags = cursor.getString(cursor.getColumnIndex("tag")).trim();
+                String[] tag_list = tags.split(";");
+                info.setTags(tag_list);
+                list.add(info);
+            }
+            return list;
+        }
+    }
+
+    public ArrayList<UserInfoData> getUserData(int where_box){
+        try(Cursor cursor = read.query(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,DbContainer.BlankEntry.COLUMNS_INBOX_USER_WHERE+" = ",new String[]{where_box+""},null,null,null) ){
+            ArrayList<UserInfoData> list = new ArrayList<>();
+            UserInfoData info = new UserInfoData();
+            while(cursor.moveToNext()){
+                info.setImage(cursor.getString(cursor.getColumnIndex("image")));
+                info.setName(cursor.getString(cursor.getColumnIndex("name")));
+                info.setStatus(cursor.getString(cursor.getColumnIndex("status")));
+                info.setNumber(cursor.getString(cursor.getColumnIndex("number")));
                 String tags = cursor.getString(cursor.getColumnIndex("tag")).trim();
                 String[] tag_list = tags.split(";");
                 info.setTags(tag_list);

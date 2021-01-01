@@ -1,14 +1,28 @@
 package com.futurework.codefriends.data;
 
+import android.service.autofill.UserData;
+
+import com.futurework.codefriends.UserForm;
+
 public class UserInfoData {
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    private long id;
     private String name,image,email,status;
+    private byte[] imageByte;
     private String[] tags;
-    private int number;
+    private String number;
 
     public UserInfoData(){}
 
-    public UserInfoData(final String name, String image, String email, String status, String[] tags, int number) {
+    public UserInfoData(final String name, String image, String email, String status, String[] tags, String number) {
         this.name = name;
         this.image = image;
         this.email = email;
@@ -27,6 +41,14 @@ public class UserInfoData {
 
     public String getImage() {
         return image;
+    }
+
+    public byte[] getImageByte() {
+        return imageByte;
+    }
+
+    public void setImageByte(byte[] imageByte) {
+        this.imageByte = imageByte;
     }
 
     public void setImage(String image) {
@@ -66,11 +88,11 @@ public class UserInfoData {
         this.tags = tags;
     }
 
-    public int getNumber() {
+    public String getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(String number) {
         this.number = number;
     }
 }
