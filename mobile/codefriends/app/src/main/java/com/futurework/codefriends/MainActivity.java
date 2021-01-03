@@ -40,14 +40,17 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<UserInfoData> Data;
     private InfoHolderAdapter adapter;
     private InboxDbProvider dbProvider;
-    //private ImageView buttonSetting = findViewById(R.id.s);
     private ImageView search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mAuth = FirebaseAuth.getInstance();
+        
+        if(mAuth.getCurrentUser() == null){
+            Log.d(TAG,"null object ");
+        }
         search = findViewById(R.id.search_button);
         search.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,36 +60,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Search option" + R.id.search_button);
             }
         });
-
-      /*  buttonSetting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "Search option" + R.id.search_button);
-                startActivity(new Intent(MainActivity.this, Contact.class));
-            }
-        });*/
-
-        //Checking if the user is registered
-        mAuth = FirebaseAuth.getInstance();
-
-        if (mAuth.getCurrentUser() == null) {
-            Log.i(TAG, "No User found!");
-            Toast.makeText(getApplicationContext()
-                    , "Can not able to fetch your information!", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(MainActivity.this, Login.class));
-            this.finish();
-        } else {
-            long count = new UserDbProvider(this).getCount();
-            Log.d(TAG, "user database count : " + count);
-            if (count <= 0) {
-                Log.d(TAG, "test");
-                startActivity(new Intent(MainActivity.this, UserForm.class));
-                this.finish();
-            }
-            Log.d(TAG, "user name : " + mAuth.getUid());
-
-        }
-
 
         ListView = findViewById(R.id.List);
         //Implementing list view in the main screen
@@ -136,14 +109,6 @@ public class MainActivity extends AppCompatActivity {
             Data = dbProvider.getUserData();
             adapter = new InfoHolderAdapter(Data, getApplicationContext());
             ListView.setAdapter(adapter);
-        }
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Log.d(TAG, "no user");
-            FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(MainActivity.this, Login.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-            MainActivity.this.finish();
         }
     }
 

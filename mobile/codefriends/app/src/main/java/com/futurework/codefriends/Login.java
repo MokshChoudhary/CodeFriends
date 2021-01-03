@@ -3,7 +3,6 @@
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -15,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -172,15 +172,15 @@ import java.util.Objects;
     }
 
     public void gotoMainActivity(){
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        Boolean flag = sharedPref.getBoolean(getString(R.string.is_user_info_flag), false);
-        if(flag){
-            startActivity(new Intent(Login.this, UserForm.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
-            Login.this.finish();
-        }else {
-            startActivity(new Intent(Login.this, UserForm.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
-            Login.this.finish();
-        }
+        //SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        //boolean flag = sharedPref.getBoolean(getString(R.string.is_user_info_flag), true);
+        long count = new UserDbProvider(this).getCount();
+        if(count > 0)
+            startActivity(new Intent(Login.this, MainActivity.class));
+        else
+            startActivity(new Intent(Login.this, UserForm.class));
+
+        Login.this.finish();
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
@@ -260,9 +260,6 @@ import java.util.Objects;
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        //FirebaseUser currentUser = mAuth.getCurrentUser();
-        //updateUI(currentUser);
     }
 
 }

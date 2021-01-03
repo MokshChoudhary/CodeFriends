@@ -1,10 +1,6 @@
 package com.futurework.codefriends;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.WindowManager;
@@ -12,6 +8,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -20,6 +20,7 @@ public class SplashScreen extends AppCompatActivity {
     private TextView logo ;
     private TextView logo_string ;
     private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,29 +38,43 @@ public class SplashScreen extends AppCompatActivity {
         logo_string.startAnimation(fadeAnimation);
         logo.startAnimation(fadeAnimation);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (user != null) {
-            FirebaseAuth.getInstance().getCurrentUser().reload();
-
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    startActivity(new Intent(SplashScreen.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                    SplashScreen.this.finish();
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user == null) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            startActivity(new Intent(SplashScreen.this,Login.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                            SplashScreen.this.finish();
+                        }
+                    },2000);
                 }
-            },2000);
-
-        }else if(user == null) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    startActivity(new Intent(SplashScreen.this,Login.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                    SplashScreen.this.finish();
-                }
-            },2000);
-        }
+            }
+        };
     }
+
+    /**
+     * Dispatch onResume() to fragments.  Note that for better inter-operation
+     * with older versions of the platform, at the point of this call the
+     * fragments attached to the activity are <em>not</em> resumed.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mAuth.removeAuthStateListener(mAuthStateListener);
+    }
+
+    /**
+     * Dispatch onPause() to fragments.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mAuth.addAuthStateListener(mAuthStateListener);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -73,10 +88,20 @@ public class SplashScreen extends AppCompatActivity {
                 }
             },2000);
         }else{
+            long count = new UserDbProvider(this).getCount();
+            if(count > 0)
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    startActivity(new Intent(SplashScreen.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                    startActivity(new Intent(SplashScreen.this,MainActivity.class));
+                    SplashScreen.this.finish();
+                }
+            },2000);
+            else
+                new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startActivity(new Intent(SplashScreen.this,UserForm.class));
                     SplashScreen.this.finish();
                 }
             },2000);

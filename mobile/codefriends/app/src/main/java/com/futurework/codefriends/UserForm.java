@@ -5,16 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.icu.text.LocaleDisplayNames;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.service.autofill.UserData;
-import android.text.style.LocaleSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -29,9 +24,9 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.futurework.codefriends.Database.UserDb.UserDbProvider;
-import com.futurework.codefriends.FirebaseConnection.UserInfoUploadDownload;
 import com.futurework.codefriends.Service.Service;
 import com.futurework.codefriends.data.UserInfoData;
+import com.futurework.codefriends.templates.CustomProgressBar;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -39,7 +34,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 
@@ -47,7 +41,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -72,6 +65,7 @@ public class UserForm extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_form);
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         final Animation flick = AnimationUtils.loadAnimation(this, R.anim.button_flick);
         button = findViewById(R.id.form_button);
         name = findViewById(R.id.form_name);
@@ -85,27 +79,37 @@ public class UserForm extends AppCompatActivity {
         ArrayAdapter<String> aa = new ArrayAdapter<>(this,android.R.layout.simple_spinner_item,b);
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(aa);
+        final CustomProgressBar progressBar = new CustomProgressBar(UserForm.this);
+        progressBar.setTitle("Pleas wait");
+        progressBar.setMessage("Working on your information");
+        progressBar.show();
+        new Handler()
+                .postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(user != null) {
+                            if (!user.getDisplayName().isEmpty())
+                                name.setText(user.getDisplayName().trim());
+                            if (!user.getEmail().isEmpty())
+                            {
+                                email.setText(user.getEmail().trim());
+                                email.setEnabled(false);
+                            }
+                            if (user.getPhoneNumber() != null  )
+                                if(!user.getPhoneNumber().isEmpty()){
+                                    number.setText(user.getPhoneNumber());
+                                    number.setEnabled(false);
+                                }
+                            if (user.getPhotoUrl() != null)
+                                Glide.with(getApplicationContext()).
+                                        asBitmap().
+                                        load(user.getPhotoUrl()).
+                                        into(image);
+                        }
+                        progressBar.dismiss();
+                    }
+                },5000);
 
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if(user != null) {
-                if (!user.getDisplayName().isEmpty())
-                    name.setText(user.getDisplayName().trim());
-                if (!user.getEmail().isEmpty())
-                {
-                    email.setText(user.getEmail().trim());
-                    email.setEnabled(false);
-                }
-                if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
-                    number.setText(user.getPhoneNumber());
-                    number.setEnabled(false);
-                }
-                if (user.getPhotoUrl() != null)
-                    Glide.with(getApplicationContext()).
-                            asBitmap().
-                            load(user.getPhotoUrl()).
-                            into(image);
-            }
         status.setText("I am Available");
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -137,7 +141,7 @@ public class UserForm extends AppCompatActivity {
                             //uploading data to cloud
                             final UserInfoData data = new UserInfoData();
                             data.setName(name.getText().toString().trim());
-                            data.setImage(Objects.requireNonNull(task.getResult()).toString().trim());
+                            data.setImage(Objects.requireNonNull(task.getResult().getUploadSessionUri()).toString().trim());
                             data.setEmail(email.getText().toString().trim());
                             data.setNumber(number.getText().toString().trim());
                             data.setStatus(Objects.requireNonNull(status.getText()).toString().trim());

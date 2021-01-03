@@ -1,10 +1,12 @@
 package com.futurework.codefriends;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.ListView;
@@ -40,16 +42,18 @@ public class Contact extends AppCompatActivity {
         bar.setVisibility(ProgressBar.INVISIBLE);
 
         if (ContextCompat.checkSelfPermission(Contact.this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            ContentResolver cr = getContentResolver();
-            Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+            final ContentResolver cr = getContentResolver();
+
+            @SuppressLint("Recycle") final Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                     null, null, null,
-                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME+" ASC");
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+
             if ((cur != null ? cur.getCount() : 0) > 0) {
                 bar.setVisibility(View.VISIBLE);
                 while (cur.moveToNext()) {
                     String id = cur.getString(
                             cur.getColumnIndex(ContactsContract.Contacts._ID));
-                    String imageUri =  cur.getString(cur.getColumnIndex(ContactsContract.Contacts.PHOTO_URI));
+                    String imageUri = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.PHOTO_URI));
                     String name = cur.getString(cur.getColumnIndex(
                             ContactsContract.Contacts.DISPLAY_NAME));
 
@@ -63,16 +67,14 @@ public class Contact extends AppCompatActivity {
                         while (pCur.moveToNext()) {
                             String phoneNo = pCur.getString(pCur.getColumnIndex(
                                     ContactsContract.CommonDataKinds.Phone.NUMBER));
-                            this.name.add(name);
-                            this.imageUri.add(imageUri);
-                            this.number.add(phoneNo);
+                            Contact.this.name.add(name);
+                            Contact.this.imageUri.add(imageUri);
+                            Contact.this.number.add(phoneNo);
                         }
                         pCur.close();
                     }
                 }
             }
-
-
             final ContactAdapter adapter = new ContactAdapter(Contact.this,name,number,imageUri);
 
             list.setAdapter(adapter);

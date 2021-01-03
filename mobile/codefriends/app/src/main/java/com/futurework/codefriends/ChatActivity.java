@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.futurework.codefriends.Adapters.ChatAdapter;
 import com.futurework.codefriends.Database.InboxDb.InboxDbProvider;
 import com.futurework.codefriends.data.ChatData;
