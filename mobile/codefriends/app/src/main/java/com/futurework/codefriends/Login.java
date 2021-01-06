@@ -15,6 +15,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.futurework.codefriends.Database.UserDb.UserDbProvider;
+import com.futurework.codefriends.Service.Service;
+import com.futurework.codefriends.data.UserInfoData;
+import com.futurework.codefriends.templates.CustomProgressBar;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -30,8 +33,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,6 +54,7 @@ import java.util.Objects;
     private String email ,password;
     private int RC_GOOGLE_SIGN_IN = 7;
     private GoogleSignInClient mGoogleSignInClient;
+    private FirebaseUser user;
     private final AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.8F);
 
     @Override
@@ -117,7 +126,6 @@ import java.util.Objects;
                             Log.d(TAG, "signInWithEmail:success");
                             Toast.makeText(Login.this, "welcome !",
                                     Toast.LENGTH_SHORT).show();
-                            //FirebaseUser user = mAuth.getCurrentUser();
                             gotoMainActivity();
                         } else {
                             // If sign in fails, display a message to the user.
@@ -144,41 +152,14 @@ import java.util.Objects;
 
     }
 
-    private void setData(){
-        /*Map<String,Object> user = new HashMap<>();
-        if(!FirebaseAuth.getInstance().getCurrentUser().getDisplayName().isEmpty())
-            user.put("name",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
-        user.put("image",image);
-        if(!FirebaseAuth.getInstance().getCurrentUser().getEmail().isEmpty())
-            user.put("email",FirebaseAuth.getInstance().getCurrentUser().getEmail());
-        if(!FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber().isEmpty())
-            user.put("number",FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber());
-
-        user.put("status",status);
-        user.put("tags",tags);
-
-        db.collection("Users").add(userName.trim())
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-
-            }
-        });*/
-    }
-
     public void gotoMainActivity(){
-        //SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        //boolean flag = sharedPref.getBoolean(getString(R.string.is_user_info_flag), true);
         long count = new UserDbProvider(this).getCount();
+        if(user != null)
         if(count > 0)
             startActivity(new Intent(Login.this, MainActivity.class));
-        else
+        else{
             startActivity(new Intent(Login.this, UserForm.class));
+        }
 
         Login.this.finish();
     }
@@ -192,7 +173,6 @@ import java.util.Objects;
                         if (task.isSuccessful()) {
                             // Sign in success with google, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
-                            //FirebaseUser user = mAuth.getCurrentUser();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -217,7 +197,7 @@ import java.util.Objects;
                         if (task.isSuccessful()) {
                             // Sign in success with email, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                            user = mAuth.getCurrentUser();
                             assert user != null;
                             Toast.makeText(getApplicationContext(),"Welcome! "+ user.getDisplayName(),Toast.LENGTH_LONG).show();
                             gotoMainActivity();

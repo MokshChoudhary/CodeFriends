@@ -2,6 +2,7 @@ package com.futurework.codefriends.templates;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
@@ -27,6 +28,14 @@ public class CustomProgressBar extends Dialog{
         title = this.getWindow().findViewById(R.id.progress_title);
         msg = this.getWindow().findViewById(R.id.progress_msg);
         button = this.getWindow().findViewById(R.id.button2);
+    }
+
+    public void removeButton(){
+        button.setVisibility(View.GONE);
+    }
+
+    public void insertButton(){
+        button.setVisibility(View.GONE);
     }
 
     public void setTitle(String title) {

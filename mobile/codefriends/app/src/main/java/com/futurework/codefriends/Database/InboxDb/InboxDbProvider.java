@@ -103,7 +103,7 @@ public class InboxDbProvider {
             ArrayList<UserInfoData> list = new ArrayList<>();
             UserInfoData info = new UserInfoData();
             while(cursor.moveToNext()){
-                info.setId(cursor.getLong(cursor.getColumnIndex(DbContainer.BlankEntry._ID)));
+                info.setId(cursor.getString(cursor.getColumnIndex(DbContainer.BlankEntry._ID)));
                 info.setImage(cursor.getString(cursor.getColumnIndex("image")));
                 info.setName(cursor.getString(cursor.getColumnIndex("name")));
                 info.setStatus(cursor.getString(cursor.getColumnIndex("status")));

@@ -7,34 +7,49 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.transition.Fade;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.futurework.codefriends.Adapters.ChatAdapter;
+import com.futurework.codefriends.Database.DbHelper;
 import com.futurework.codefriends.Database.InboxDb.InboxDbProvider;
+import com.futurework.codefriends.Database.MessageDb.MessageDbProvider;
 import com.futurework.codefriends.data.ChatData;
 import com.futurework.codefriends.data.UserInfoData;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.FirebaseDatabase;
 
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static androidx.recyclerview.widget.LinearLayoutManager.VERTICAL;
 
 public class ChatActivity extends AppCompatActivity {
 
     static String TAG = "ChatActivity";
-    private TextView name,text;
-    private ImageView image;
+    private TextView name;
+    private ImageView image,imageSet;
     private ArrayList<ChatData> mData;
     private RecyclerView recyclerView;
     private PopupMenu menu;
+    private FirebaseDatabase mDatabase;
+    private EditText input;
     private TextView bmb;
+    private MessageDbProvider mDbProvider = new MessageDbProvider(new DbHelper(ChatActivity.this).getWritableDatabase());
+    private boolean flag = true;
+    private String uniqueId;
 
     @SuppressLint({"SetTextI18n"})
     @Override
@@ -43,18 +58,46 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chating);
         name = findViewById(R.id.chatter_name);
         image = findViewById(R.id.chatter_image);
-        text = findViewById(R.id.send_input_text);
-        long i = getIntent().getLongExtra("id",-1);
-        final ImageButton button = findViewById(R.id.button_send_chat_activity);
-
+        input = findViewById(R.id.send_input_text);
+        imageSet = findViewById(R.id.image_set);
+        imageSet.setImageResource(R.drawable.blank);
+        uniqueId = getIntent().getLongExtra("id",-1)+"";
+        final FloatingActionButton button = findViewById(R.id.button_send_chat_activity);
         InboxDbProvider dbProvider = new InboxDbProvider(this);
-        Log.d(TAG,"Id is : "+i);
-        for(UserInfoData data : dbProvider.getUserData(i)){
+        Log.d(TAG,"Id is : "+ uniqueId);
+        for(UserInfoData data : dbProvider.getUserData(Long.parseLong(uniqueId))){
             name.setText(data.getName());
             image.setImageBitmap(dbProvider.byteToBitmap(data.getImageByte()));
         }
 
         button.setOnClickListener(new send_button_add_data_UI());
+
+        input.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                Log.d(TAG,editable.toString().trim().length()+"");
+                if(editable.toString().trim().length() > 0){
+                    if(flag)
+                    {
+                        button.setImageResource(R.drawable.ic_baseline_send_24);
+                        imageSet.setImageResource(R.drawable.ic_baseline_attachment_24);
+                        flag = false;
+                    }
+                }else{
+                    button.setImageResource(R.drawable.ic_baseline_attachment_24);
+                    imageSet.setImageResource(R.drawable.blank);
+                    flag = true;
+                }
+            }
+        });
 
         final TextView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -97,7 +140,7 @@ public class ChatActivity extends AppCompatActivity {
         ChatAdapter n = new ChatAdapter(this,mData);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, VERTICAL, false);
         recyclerView.setLayoutManager(linearLayoutManager);
-        //recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(n);
         recyclerView.scrollToPosition(mData.size() - 1);
     }
@@ -106,16 +149,23 @@ public class ChatActivity extends AppCompatActivity {
         @Override
         public void onClick(View view){
             /* the recycle view implementation*/
-            if(!text.getText().toString().trim().isEmpty()) {
+            if(!input.getText().toString().trim().isEmpty()) {
+                //@TODO Update in firebase
+                mDatabase.getReference("Chatting/").child(uniqueId+"/").push();
+
+                mDbProvider.setMessage(uniqueId,input.getText().toString().trim());
                 RecyclerView recyclerView = findViewById(R.id.recyclerView);
                 ChatAdapter n = new ChatAdapter(ChatActivity.this, mData);
-                mData.add(new ChatData(text.getText().toString().trim(), ChatData.SENDER_TEXT));
+                mData.add(new ChatData(input.getText().toString().trim(), ChatData.SENDER_TEXT));
                 LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ChatActivity.this, VERTICAL, false);
                 recyclerView.setLayoutManager(linearLayoutManager);
                 recyclerView.scrollToPosition(mData.size() - 1);
                 recyclerView.setItemAnimator(new DefaultItemAnimator());
-                text.setText("");
+                input.setText("");
                 recyclerView.setAdapter(n);
+            }else{
+                //@TODO send files ,Document,Images,audio
+                PopupMenu menu = new PopupMenu(ChatActivity.this, view);
             }
         }
     }

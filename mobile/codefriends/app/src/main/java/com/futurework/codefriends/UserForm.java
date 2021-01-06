@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -27,13 +28,16 @@ import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.futurework.codefriends.Service.Service;
 import com.futurework.codefriends.data.UserInfoData;
 import com.futurework.codefriends.templates.CustomProgressBar;
+import com.futurework.codefriends.templates.UserInfoDialog;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 
@@ -43,15 +47,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 public class UserForm extends AppCompatActivity {
 
     private Button button ;
     private androidx.appcompat.widget.AppCompatEditText name,email,number,status;
     private ImageView image;
-    private Dialog progressDialog;
+    private CustomProgressBar progressDialog;
     private String TAG = "UserForm";
     private Spinner spinner;
+    private boolean flag = true;
+    private final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
 
     public interface OnDataListener{
@@ -65,7 +72,6 @@ public class UserForm extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_form);
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         final Animation flick = AnimationUtils.loadAnimation(this, R.anim.button_flick);
         button = findViewById(R.id.form_button);
         name = findViewById(R.id.form_name);
@@ -76,7 +82,7 @@ public class UserForm extends AppCompatActivity {
         image = findViewById(R.id.form_image);
         String[] a = Service.getCountry();
         String[] b = Service.getCode();
-        ArrayAdapter<String> aa = new ArrayAdapter<>(this,android.R.layout.simple_spinner_item,b);
+        ArrayAdapter<String> aa = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, b);
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(aa);
         final CustomProgressBar progressBar = new CustomProgressBar(UserForm.this);
@@ -87,16 +93,57 @@ public class UserForm extends AppCompatActivity {
                 .postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if(user != null) {
+                        if (user != null) {
+                            final CustomProgressBar progressBar = new CustomProgressBar(UserForm.this);
+                            progressBar.setTitle("Checking for");
+                            progressBar.setMessage("User");
+
+                            Log.d(TAG,user.toString());
+                            Log.d(TAG,user.getEmail());
+                            String w = user.getEmail();
+
+
+                            FirebaseFirestore.getInstance().collection("Users")
+                                    .document(new Service().removeExtraFromString(w))
+                                    .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                @Override
+                                public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                        Map<String, Object> id = documentSnapshot.getData();
+
+                                        final UserInfoData data = new UserInfoData();
+                                        data.setId(id.get("id").toString());
+                                        data.setName(id.get("name").toString().trim());
+                                        data.setImage(Objects.requireNonNull(id.get("image")).toString().trim());
+                                        data.setEmail(id.get("email").toString().trim());
+                                        data.setNumber(id.get("number").toString().trim());
+                                        data.setStatus(Objects.requireNonNull(id.get("status")).toString().trim());
+                                        final List list = Arrays.asList("C++", "Java", "Android");
+                                        data.setTags((String[]) list.toArray());
+
+                                        UserDbProvider dbProvider = new UserDbProvider(getApplicationContext());
+                                        if (dbProvider.insertUserData(data) != -1) {
+                                            progressBar.dismiss();
+                                            startActivity(new Intent(UserForm.this, MainActivity.class));
+                                            UserForm.this.finish();
+                                        }
+                                        progressBar.dismiss();
+                                    }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    progressBar.dismiss();
+                                }
+                            });
+
                             if (!user.getDisplayName().isEmpty())
                                 name.setText(user.getDisplayName().trim());
-                            if (!user.getEmail().isEmpty())
-                            {
+                            if (!user.getEmail().isEmpty()) {
                                 email.setText(user.getEmail().trim());
                                 email.setEnabled(false);
                             }
-                            if (user.getPhoneNumber() != null  )
-                                if(!user.getPhoneNumber().isEmpty()){
+                            if (user.getPhoneNumber() != null)
+                                if (!user.getPhoneNumber().isEmpty()) {
                                     number.setText(user.getPhoneNumber());
                                     number.setEnabled(false);
                                 }
@@ -106,9 +153,10 @@ public class UserForm extends AppCompatActivity {
                                         load(user.getPhotoUrl()).
                                         into(image);
                         }
-                        progressBar.dismiss();
+                        if (flag)
+                            progressBar.dismiss();
                     }
-                },5000);
+                }, 5000);
 
         status.setText("I am Available");
 
@@ -116,19 +164,16 @@ public class UserForm extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 view.startAnimation(flick);
-                if(!name.getText().toString().isEmpty()&&!email.getText().toString().isEmpty()&&!number.getText().toString().isEmpty()) {
-                    progressDialog = new Dialog(UserForm.this);
-                    progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                    progressDialog.setContentView(R.layout.layout_progress);
-                    progressDialog.setCancelable(false);
-                    final TextView title = progressDialog.getWindow().findViewById(R.id.progress_title);
-                    final TextView msg = progressDialog.getWindow().findViewById(R.id.progress_msg);
-                    title.setText("Saving your information on");
-                    msg.setText("Cloud");
+
+                if (!name.getText().toString().isEmpty() && !email.getText().toString().isEmpty() && !number.getText().toString().isEmpty()) {
+                    progressDialog = new CustomProgressBar(UserForm.this);
+
+                    progressDialog.setTitle("Saving your information on");
+                    progressDialog.setMessage("Cloud");
                     progressDialog.show();
                     //Uploading the image
                     ByteArrayOutputStream bitOutputStream = new ByteArrayOutputStream();
-                    ((BitmapDrawable)image.getDrawable()).getBitmap().compress(Bitmap.CompressFormat.JPEG, 100, bitOutputStream);
+                    ((BitmapDrawable) image.getDrawable()).getBitmap().compress(Bitmap.CompressFormat.JPEG, 100, bitOutputStream);
                     byte[] data = bitOutputStream.toByteArray();
                     FirebaseStorage storage = FirebaseStorage.getInstance();
 
@@ -137,9 +182,12 @@ public class UserForm extends AppCompatActivity {
                     task.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                            Log.d(TAG,"Uploading result of Image is "+task.getResult());
+                            Log.d(TAG, "Uploading result of Image is " + task.getResult());
                             //uploading data to cloud
+
+                            String id = UUID.randomUUID().toString().replace("-", "");
                             final UserInfoData data = new UserInfoData();
+                            data.setId(id);
                             data.setName(name.getText().toString().trim());
                             data.setImage(Objects.requireNonNull(task.getResult().getUploadSessionUri()).toString().trim());
                             data.setEmail(email.getText().toString().trim());
@@ -147,10 +195,11 @@ public class UserForm extends AppCompatActivity {
                             data.setStatus(Objects.requireNonNull(status.getText()).toString().trim());
                             final List list = Arrays.asList("C++", "Java", "Android");
 
-                            Map<String,Object> info = new HashMap<>();
-                            info.put("name",data.getName());
+                            Map<String, Object> info = new HashMap<>();
+                            info.put("id", id);
+                            info.put("name", data.getName());
                             info.put("image", data.getImage());
-                            info.put("email",data.getEmail());
+                            info.put("email", data.getEmail());
                             info.put("status", data.getStatus());
                             info.put("number", data.getNumber());
                             info.put("tags", list);
@@ -164,16 +213,18 @@ public class UserForm extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(Void mVoid) {
                                             Log.d(TAG, "DocumentSnapshot successfully written!");
-                                            msg.setText("Device");
+                                            progressDialog.setMessage("Device");
                                             //Saving data on user device
                                             UserDbProvider dbProvider = new UserDbProvider(getApplicationContext());
-                                            if(dbProvider.insertUserData(data) != -1){
+                                            if (dbProvider.insertUserData(data) != -1) {
                                                 progressDialog.dismiss();
-                                                startActivity(new Intent(UserForm.this,MainActivity.class));
+                                                startActivity(new Intent(UserForm.this, MainActivity.class));
                                                 UserForm.this.finish();
-                                            }else{
-                                                Toast.makeText(getApplicationContext(),"Not able to Save data in your device! Pls restart your device.",Toast.LENGTH_LONG).show();
+                                            } else {
+                                                progressDialog.dismiss();
+                                                Toast.makeText(getApplicationContext(), "Not able to Save data in your device! Pls restart your device.", Toast.LENGTH_LONG).show();
                                             }
+
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -189,12 +240,11 @@ public class UserForm extends AppCompatActivity {
                         public void onFailure(@NonNull Exception e) {
                             progressDialog.dismiss();
                             recreate();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
                 }
             }
         });
-
     }
 }
