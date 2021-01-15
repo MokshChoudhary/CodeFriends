@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -32,13 +31,10 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,9 +46,9 @@ import java.util.Objects;
     private TextView username ;
     private TextView pass;
     private Button login;
-     private GoogleSignInOptions gso;
+    private GoogleSignInOptions gso;
     private String email ,password;
-    private int RC_GOOGLE_SIGN_IN = 7;
+    private final int RC_GOOGLE_SIGN_IN = 7;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseUser user;
     private final AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.8F);
@@ -78,6 +74,7 @@ import java.util.Objects;
                 addNewUser();
             }
         });
+
         //this function enables the google sign in method
         loginUsingGoogle.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,7 +151,6 @@ import java.util.Objects;
 
     public void gotoMainActivity(){
         long count = new UserDbProvider(this).getCount();
-        if(user != null)
         if(count > 0)
             startActivity(new Intent(Login.this, MainActivity.class));
         else{
@@ -165,7 +161,7 @@ import java.util.Objects;
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken,null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -173,6 +169,7 @@ import java.util.Objects;
                         if (task.isSuccessful()) {
                             // Sign in success with google, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
+                            Log.d(TAG, Objects.requireNonNull(Objects.requireNonNull(task.getResult()).getUser()).getEmail());
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -198,9 +195,54 @@ import java.util.Objects;
                             // Sign in success with email, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             user = mAuth.getCurrentUser();
-                            assert user != null;
-                            Toast.makeText(getApplicationContext(),"Welcome! "+ user.getDisplayName(),Toast.LENGTH_LONG).show();
-                            gotoMainActivity();
+                            if(user != null){
+                                final CustomProgressBar progressBar = new CustomProgressBar(Login.this);
+                                progressBar.setTitle("Checking for");
+                                progressBar.setMessage("User");
+
+                                Log.d(TAG,user.toString());
+                                Log.d(TAG,user.getEmail());
+                                String w = user.getEmail();
+
+
+                                assert w != null;
+                                FirebaseFirestore.getInstance().collection("Users")
+                                        .document(new Service().removeExtraFromString(w))
+                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                        Map<String, Object> id = documentSnapshot.getData();
+
+                                        final UserInfoData data = new UserInfoData();
+                                        data.setId(id.get("id").toString());
+                                        data.setName(id.get("name").toString().trim());
+                                        data.setImage(Objects.requireNonNull(id.get("image")).toString().trim());
+                                        data.setEmail(id.get("email").toString().trim());
+                                        data.setNumber(id.get("number").toString().trim());
+                                        data.setStatus(Objects.requireNonNull(id.get("status")).toString().trim());
+                                        final List list = Arrays.asList("C++", "Java", "Android");
+                                        data.setTags((String[]) list.toArray());
+
+                                        UserDbProvider dbProvider = new UserDbProvider(Login.this);
+                                        if (dbProvider.insertUserData(data) != -1) {
+                                            progressBar.dismiss();
+                                            Log.d(TAG,"done 232");
+                                            startActivity(new Intent(Login.this, MainActivity.class));
+                                            Toast.makeText(getApplicationContext(),"Welcome! "+ user.getDisplayName(),Toast.LENGTH_LONG).show();
+                                            Login.this.finish();
+                                        }
+                                        progressBar.dismiss();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        progressBar.dismiss();
+                                        Log.d(TAG,"failed 1");
+                                        gotoMainActivity();
+                                    }
+                                });
+                            }
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -222,19 +264,75 @@ import java.util.Objects;
          // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
          if (requestCode == RC_GOOGLE_SIGN_IN) {
              Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-             try {
-                 // Google Sign In was successful, authenticate with Firebase
-                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                 assert account != null;
-                 Log.d(TAG, "firebaseAuthWithGoogle:" + account.getId());
-                 firebaseAuthWithGoogle(account.getIdToken());
-                 Toast.makeText(getApplicationContext(),"Welcome! "+account.getDisplayName(),Toast.LENGTH_LONG).show();
-                 gotoMainActivity();
-             } catch (ApiException e) {
-                 // Google Sign In failed, update UI appropriately
-                 Log.w(TAG, "Google sign in failed", e);
-                 // ...
-             }
+             task.addOnCompleteListener(new OnCompleteListener<GoogleSignInAccount>() {
+                 @Override
+                 public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
+                     GoogleSignInAccount account = null;
+                     try {
+                         account = task.getResult(ApiException.class);
+                     }catch (ApiException e) {
+                         // Google Sign In failed, update UI appropriately
+                         Log.w(TAG, "Google sign in failed", e);
+                         // ...
+                     }
+
+                     if(account != null) {
+                         Log.d(TAG, "firebaseAuthWithGoogle:" + account.getEmail());
+                         firebaseAuthWithGoogle(account.getIdToken());
+
+                         final CustomProgressBar progressBar = new CustomProgressBar(Login.this);
+                         progressBar.setTitle("Checking for");
+                         progressBar.setMessage("User");
+
+                         Log.d(TAG,account.getEmail());
+                         String w = account.getEmail();
+
+
+                         assert w != null;
+                         FirebaseFirestore.getInstance().collection("Users")
+                                 .document(new Service().removeExtraFromString(w))
+                                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                             @Override
+                             public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                 Map<String, Object> id = documentSnapshot.getData();
+
+                                 final UserInfoData data = new UserInfoData();
+                                 data.setId(id.get("id").toString());
+                                 data.setName(id.get("name").toString().trim());
+                                 data.setImage(Objects.requireNonNull(id.get("image")).toString().trim());
+                                 data.setEmail(id.get("email").toString().trim());
+                                 data.setNumber(id.get("number").toString().trim());
+                                 data.setStatus(Objects.requireNonNull(id.get("status")).toString().trim());
+                                 final List list = Arrays.asList("C++", "Java", "Android");
+                                 data.setTags((String[]) list.toArray());
+
+                                 UserDbProvider dbProvider = new UserDbProvider(Login.this);
+
+                                 if (dbProvider.insertUserData(data) != -1) {
+                                     progressBar.dismiss();
+                                     Log.d(TAG,"done 315");
+
+                                     startActivity(new Intent(Login.this, MainActivity.class));
+                                     Toast.makeText(getApplicationContext(),"Welcome! "+ data.getName(),Toast.LENGTH_LONG).show();
+                                     Login.this.finish();
+                                 }
+                                 progressBar.dismiss();
+                             }
+                         }).addOnFailureListener(new OnFailureListener() {
+                             @Override
+                             public void onFailure(@NonNull Exception e) {
+                                 progressBar.dismiss();
+                                 Log.d(TAG,"failed 1");
+                                 gotoMainActivity();
+                             }
+                         });
+
+                     }else{
+                        Toast.makeText(Login.this,"Not able to login pleas check your internet! " ,Toast.LENGTH_LONG).show();
+                     }
+                 }
+             });
          }
      }
     @Override

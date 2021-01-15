@@ -4,23 +4,19 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -28,7 +24,6 @@ import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.futurework.codefriends.Service.Service;
 import com.futurework.codefriends.data.UserInfoData;
 import com.futurework.codefriends.templates.CustomProgressBar;
-import com.futurework.codefriends.templates.UserInfoDialog;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -37,7 +32,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 
@@ -94,48 +88,6 @@ public class UserForm extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (user != null) {
-                            final CustomProgressBar progressBar = new CustomProgressBar(UserForm.this);
-                            progressBar.setTitle("Checking for");
-                            progressBar.setMessage("User");
-
-                            Log.d(TAG,user.toString());
-                            Log.d(TAG,user.getEmail());
-                            String w = user.getEmail();
-
-
-                            FirebaseFirestore.getInstance().collection("Users")
-                                    .document(new Service().removeExtraFromString(w))
-                                    .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                @Override
-                                public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                        Map<String, Object> id = documentSnapshot.getData();
-
-                                        final UserInfoData data = new UserInfoData();
-                                        data.setId(id.get("id").toString());
-                                        data.setName(id.get("name").toString().trim());
-                                        data.setImage(Objects.requireNonNull(id.get("image")).toString().trim());
-                                        data.setEmail(id.get("email").toString().trim());
-                                        data.setNumber(id.get("number").toString().trim());
-                                        data.setStatus(Objects.requireNonNull(id.get("status")).toString().trim());
-                                        final List list = Arrays.asList("C++", "Java", "Android");
-                                        data.setTags((String[]) list.toArray());
-
-                                        UserDbProvider dbProvider = new UserDbProvider(getApplicationContext());
-                                        if (dbProvider.insertUserData(data) != -1) {
-                                            progressBar.dismiss();
-                                            startActivity(new Intent(UserForm.this, MainActivity.class));
-                                            UserForm.this.finish();
-                                        }
-                                        progressBar.dismiss();
-                                    }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    progressBar.dismiss();
-                                }
-                            });
-
                             if (!user.getDisplayName().isEmpty())
                                 name.setText(user.getDisplayName().trim());
                             if (!user.getEmail().isEmpty()) {
@@ -224,7 +176,6 @@ public class UserForm extends AppCompatActivity {
                                                 progressDialog.dismiss();
                                                 Toast.makeText(getApplicationContext(), "Not able to Save data in your device! Pls restart your device.", Toast.LENGTH_LONG).show();
                                             }
-
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {

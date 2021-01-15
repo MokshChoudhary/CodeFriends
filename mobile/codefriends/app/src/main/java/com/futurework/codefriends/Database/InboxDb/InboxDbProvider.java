@@ -39,7 +39,7 @@ public class InboxDbProvider {
         this.context = context;
     }
 
-    public long setInboxData(final Bitmap image ,final String name,String number , final int where_box, final String status ,final ArrayList<String> tag_list){
+    public long setInboxData(final Bitmap image , final String id, final String name,String number , final int where_box, final String status ,final ArrayList<String> tag_list){
         write = new DbHelper(context).getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME,name);
@@ -56,13 +56,14 @@ public class InboxDbProvider {
         }else{
             values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, ";");
         }
+        values.put(DbContainer.BlankEntry._ID,id);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NUMBER, number);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS,status);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_WHERE,where_box);
         return write.insert(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,values);
     }
 
-    public long setInboxData(final String name,String number , final int where_box, final String status , final ArrayList<String> tag_list){
+    public long setInboxData(final String id, final String name,String number , final int where_box, final String status , final ArrayList<String> tag_list){
         write = new DbHelper(context).getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NAME,name);
@@ -75,6 +76,7 @@ public class InboxDbProvider {
         }else{
             values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_TAG, ";");
         }
+        values.put(DbContainer.BlankEntry._ID,id);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_NUMBER, number);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_STATUS,status);
         values.put(DbContainer.BlankEntry.COLUMNS_INBOX_USER_WHERE,where_box);
@@ -116,9 +118,9 @@ public class InboxDbProvider {
         }
     }
 
-    public ArrayList<UserInfoData> getUserData(long id){
+    public ArrayList<UserInfoData> getUserData(String id){
         Log.d(TAG,"Id is : "+id);
-        try(Cursor cursor = read.query(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,DbContainer.BlankEntry._ID+" =? ", new String[]{String.valueOf(id)},null,null,null) ){
+        try(Cursor cursor = read.query(DbContainer.BlankEntry.INBOX_TABLE_NAME,null,DbContainer.BlankEntry._ID+" =? ", new String[]{id},null,null,null) ){
             ArrayList<UserInfoData> list = new ArrayList<>();
             UserInfoData info = new UserInfoData();
             while(cursor.moveToNext()){

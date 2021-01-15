@@ -6,12 +6,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.Fade;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -19,20 +20,20 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
-import com.futurework.codefriends.Adapters.ChatAdapter;
+import com.futurework.codefriends.adapters.ChatAdapter;
 import com.futurework.codefriends.Database.DbHelper;
 import com.futurework.codefriends.Database.InboxDb.InboxDbProvider;
 import com.futurework.codefriends.Database.MessageDb.MessageDbProvider;
+import com.futurework.codefriends.Database.UserDb.UserDbProvider;
 import com.futurework.codefriends.data.ChatData;
 import com.futurework.codefriends.data.UserInfoData;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import static androidx.recyclerview.widget.LinearLayoutManager.VERTICAL;
 
@@ -40,16 +41,26 @@ public class ChatActivity extends AppCompatActivity {
 
     static String TAG = "ChatActivity";
     private TextView name;
-    private ImageView image,imageSet;
+    private ImageView image,imageSet,bmb;
     private ArrayList<ChatData> mData;
     private RecyclerView recyclerView;
     private PopupMenu menu;
+    private ChatAdapter n;
     private FirebaseDatabase mDatabase;
+    private DatabaseReference mRef;
     private EditText input;
-    private TextView bmb;
-    private MessageDbProvider mDbProvider = new MessageDbProvider(new DbHelper(ChatActivity.this).getWritableDatabase());
+    private MessageDbProvider mRead;
+    private MessageDbProvider mWrite;
     private boolean flag = true;
-    private String uniqueId;
+    /**
+        uniqueId is use to store the data of user id
+        senderId is use to store the date of sender id
+     */
+    private String uniqueId,senderId;
+
+    public interface addDataOnSetListener{
+        void onDataSet(ChatData data);
+    }
 
     @SuppressLint({"SetTextI18n"})
     @Override
@@ -61,14 +72,29 @@ public class ChatActivity extends AppCompatActivity {
         input = findViewById(R.id.send_input_text);
         imageSet = findViewById(R.id.image_set);
         imageSet.setImageResource(R.drawable.blank);
-        uniqueId = getIntent().getLongExtra("id",-1)+"";
+        recyclerView = findViewById(R.id.recyclerView);
+        mDatabase = FirebaseDatabase.getInstance();
+        mRef = mDatabase.getReference("Chatting/");
+
+        mRead = new MessageDbProvider(new DbHelper(ChatActivity.this).getReadableDatabase());
+        mWrite = new MessageDbProvider(new DbHelper(ChatActivity.this).getWritableDatabase());
+
+        uniqueId = getIntent().getStringExtra("id");
+        Log.d(TAG,"uniqueId is : "+ uniqueId);
+
         final FloatingActionButton button = findViewById(R.id.button_send_chat_activity);
-        InboxDbProvider dbProvider = new InboxDbProvider(this);
-        Log.d(TAG,"Id is : "+ uniqueId);
-        for(UserInfoData data : dbProvider.getUserData(Long.parseLong(uniqueId))){
+        final InboxDbProvider dbProvider = new InboxDbProvider(this);
+
+        //user information
+        for(UserInfoData data : dbProvider.getUserData(uniqueId)){
             name.setText(data.getName());
             image.setImageBitmap(dbProvider.byteToBitmap(data.getImageByte()));
         }
+
+        UserInfoData data = new UserDbProvider(ChatActivity.this).getUser();
+        senderId = data.getId();
+
+        Log.d(TAG,"senderId is : "+ senderId);
 
         button.setOnClickListener(new send_button_add_data_UI());
 
@@ -99,13 +125,8 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        final TextView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ChatActivity.this.finish();
-            }
-        });
+        /*final TextView backButton = findViewById(R.id.back_button);
+        backButton.setOnClickListener(view -> ChatActivity.this.finish());*/
 
         bmb = findViewById(R.id.add_files);
 
@@ -117,7 +138,6 @@ public class ChatActivity extends AppCompatActivity {
 
         Fade fade = new Fade();
         View cView = getWindow().getDecorView();
-        fade.excludeTarget(cView.findViewById(R.id.linearLayout2),true);
         fade.excludeTarget(cView.findViewById(R.id.recyclerView),true);
         fade.excludeTarget(cView.findViewById(R.id.send_input_text),true);
         fade.excludeTarget(cView.findViewById(R.id.button_send_chat_activity),true);
@@ -134,10 +154,9 @@ public class ChatActivity extends AppCompatActivity {
 
         /* the recycle view implementation*/
         mData = new ArrayList<>();
-        recyclerView = findViewById(R.id.recyclerView);
         //mData.add(new ChatData("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg",ChatData.SENDER_IMAGE));
         //mData.add(new ChatData("https://storage.googleapis.com/webdesignledger.pub.network/WDL/work-better-with-coders-1.jpg",ChatData.RECEIVER_IMAGE));
-        ChatAdapter n = new ChatAdapter(this,mData);
+        n = new ChatAdapter(this,mData);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, VERTICAL, false);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -150,19 +169,21 @@ public class ChatActivity extends AppCompatActivity {
         public void onClick(View view){
             /* the recycle view implementation*/
             if(!input.getText().toString().trim().isEmpty()) {
-                //@TODO Update in firebase
-                mDatabase.getReference("Chatting/").child(uniqueId+"/").push();
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat time_formatter = new SimpleDateFormat("hh:mm a");
+                String current_time_str = time_formatter.format(System.currentTimeMillis());
+                ChatData msgData = new ChatData(senderId, input.getText().toString().trim(),current_time_str, ChatData.SENDER_TEXT);
+                mRef.child(uniqueId+"/").push().setValue(msgData);
 
-                mDbProvider.setMessage(uniqueId,input.getText().toString().trim());
+                mWrite.setMessage(ChatData.RECEIVER_TEXT,input.getText().toString().trim(),current_time_str.trim(),senderId);
                 RecyclerView recyclerView = findViewById(R.id.recyclerView);
-                ChatAdapter n = new ChatAdapter(ChatActivity.this, mData);
-                mData.add(new ChatData(input.getText().toString().trim(), ChatData.SENDER_TEXT));
+                mData.add(new ChatData(senderId,input.getText().toString().trim(), ChatData.SENDER_TEXT));
                 LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ChatActivity.this, VERTICAL, false);
                 recyclerView.setLayoutManager(linearLayoutManager);
                 recyclerView.scrollToPosition(mData.size() - 1);
                 recyclerView.setItemAnimator(new DefaultItemAnimator());
+                n.notifyItemChanged(mData.size() - 1);
+                n.notifyDataSetChanged();
                 input.setText("");
-                recyclerView.setAdapter(n);
             }else{
                 //@TODO send files ,Document,Images,audio
                 PopupMenu menu = new PopupMenu(ChatActivity.this, view);
@@ -170,10 +191,24 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //Check for database
+        int s = mData.size();
+        mData.addAll(mRead.getMessage(senderId,25));
+        if(mData.size() > s){
+            n.notifyItemChanged(mData.size());
+        }else{
+            Log.d(TAG,"Data didn't change !");
+        }
+    }
+
     private class add_file_class implements View.OnClickListener{
         @Override
         public void onClick(View view){
-            menu = new PopupMenu(ChatActivity.this,bmb);
+            Context wrapper = new ContextThemeWrapper(ChatActivity.this,R.style.ProgressDialog);
+            menu = new PopupMenu(wrapper,bmb);
             menu.getMenuInflater().inflate(R.menu.add_file,menu.getMenu());
             menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override

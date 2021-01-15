@@ -33,8 +33,9 @@ public class DbHelper extends SQLiteOpenHelper {
             ");";
 
   public final static String CREATE_TABLE_MESSAGE = "CREATE TABLE "+ DbContainer.MessageEntry.MESSAGE_TABLE_NAME+"( " +
-            DbContainer.MessageEntry._ID+" TEXT NOT NULL PRIMARY KEY ," +
+            DbContainer.MessageEntry.COLUMNS_MESSAGE_TYPE+" INTEGER NOT NULL ," +
             DbContainer.MessageEntry.COLUMNS_MESSAGE_TIMESTAMP+" TEXT NOT NULL, "+
+            DbContainer.MessageEntry.COLUMNS_MESSAGE_SENDER_ID+" TEXT NOT NULL, "+
             DbContainer.MessageEntry.COLUMNS_MESSAGE_Text+" TEXT NOT NULL "+
             ");";
 

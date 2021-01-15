@@ -1,4 +1,38 @@
-package com.futurework.codefriends.Database;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  package com.futurework.codefriends.Database;
 
 import android.provider.BaseColumns;
 
@@ -34,8 +68,9 @@ public class DbContainer {
 
     public static class MessageEntry{
         public final static String MESSAGE_TABLE_NAME = "Message";
-        public final static String _ID = "id";
+        public final static String COLUMNS_MESSAGE_TYPE = "type";
         public final static String COLUMNS_MESSAGE_Text = "text";
         public final static String COLUMNS_MESSAGE_TIMESTAMP = "timestamp";
+        public final static String COLUMNS_MESSAGE_SENDER_ID = "senderId";
     }
 }

@@ -6,7 +6,6 @@ import android.content.ContentResolver;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.ListView;
@@ -19,7 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.futurework.codefriends.Adapters.ContactAdapter;
+import com.futurework.codefriends.adapters.ContactAdapter;
 
 import java.util.ArrayList;
 
@@ -75,7 +74,14 @@ public class Contact extends AppCompatActivity {
                     }
                 }
             }
-            final ContactAdapter adapter = new ContactAdapter(Contact.this,name,number,imageUri);
+            final ContactAdapter adapter = new ContactAdapter(Contact.this, name, number, imageUri, new ContactAdapter.addDataAddListener() {
+                @Override
+                public void onIsDataSet(boolean isDataSet) {
+                    if(isDataSet){
+                        Contact.this.finish();
+                    }
+                }
+            });
 
             list.setAdapter(adapter);
             bar.setVisibility(View.INVISIBLE);
